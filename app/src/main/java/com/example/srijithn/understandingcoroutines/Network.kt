@@ -1,11 +1,8 @@
 package com.example.srijithn.understandingcoroutines
 
-import java.util.concurrent.Executors
 import kotlin.random.Random
 
 class Network {
-
-    private val backgroundThread = Executors.newFixedThreadPool(2)
 
     fun fetchProducts(callback: (Result<List<Product>>) -> Unit) {
         backgroundThread.submit {

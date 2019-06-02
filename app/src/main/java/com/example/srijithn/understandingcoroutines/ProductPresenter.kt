@@ -20,13 +20,21 @@ class ProductPresenter {
         repository.fetchProducts { result ->
             when {
                 result.isSuccess -> {
-                    products.postValue(result.getOrDefault(listOf()))
+                    repository.storeProducts(result.getOrDefault(listOf())) { dbResult ->
+                        loadingState.postValue(false)
+                        when {
+                            dbResult.isSuccess -> products.postValue(result.getOrDefault(listOf()))
+                            dbResult.isFailure -> error.postValue(
+                                dbResult.exceptionOrNull()?.message ?: "Unknown error"
+                            )
+                        }
+                    }
                 }
                 result.isFailure -> {
+                    loadingState.postValue(false)
                     error.postValue(result.exceptionOrNull()?.message ?: "Unknown error")
                 }
             }
-            loadingState.postValue(false)
         }
     }
 }

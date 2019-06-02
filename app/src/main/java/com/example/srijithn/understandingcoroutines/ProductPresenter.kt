@@ -17,22 +17,22 @@ class ProductPresenter {
     fun onFetchClick() {
         loadingState.value = true
 
-        repository.fetchProducts { result ->
+        repository.fetchProducts { networkResult ->
             when {
-                result.isSuccess -> {
-                    repository.storeProducts(result.getOrDefault(listOf())) { dbResult ->
+                networkResult.isSuccess -> {
+                    repository.storeProducts(networkResult.getOrDefault(listOf())) { dbResult ->
                         loadingState.postValue(false)
                         when {
-                            dbResult.isSuccess -> products.postValue(result.getOrDefault(listOf()))
+                            dbResult.isSuccess -> products.postValue(networkResult.getOrDefault(listOf()))
                             dbResult.isFailure -> error.postValue(
                                 dbResult.exceptionOrNull()?.message ?: "Unknown error"
                             )
                         }
                     }
                 }
-                result.isFailure -> {
+                networkResult.isFailure -> {
                     loadingState.postValue(false)
-                    error.postValue(result.exceptionOrNull()?.message ?: "Unknown error")
+                    error.postValue(networkResult.exceptionOrNull()?.message ?: "Unknown error")
                 }
             }
         }

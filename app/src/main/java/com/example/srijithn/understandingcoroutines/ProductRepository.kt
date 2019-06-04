@@ -10,12 +10,12 @@ class ProductRepository {
         Database()
     }
 
-    fun fetchProducts(presenterCallback: (Result<List<Product>>) -> Unit) {
-        network.fetchProducts(presenterCallback)
+    fun fetchProducts(): List<Product> {
+        return network.fetchProducts()
     }
 
-    fun storeProducts(products: List<Product>, presenterCallback: (Result<Boolean>) -> Unit) {
-        database.storeProducts(products, presenterCallback)
+    fun storeProducts(products: List<Product>): Boolean {
+        return database.storeProducts(products)
     }
 
 }

@@ -36,13 +36,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeErrorState() {
-        presenter.error.observeNonNull(this) { message ->
+        presenter.mainActivityState.error.observeNonNull(this) { message ->
             textview_products.text = message
         }
     }
 
     private fun observeProducts() {
-        presenter.products.observeNonNull(this) { products ->
+        presenter.mainActivityState.products.observeNonNull(this) { products ->
             textview_products.text = products.joinToString {
                 it.name
             }
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeLoadingState() {
-        presenter.loadingState.observeNonNull(this) { shouldShow ->
+        presenter.mainActivityState.loadingState.observeNonNull(this) { shouldShow ->
             progress_bar_loading.visibility = if (shouldShow) VISIBLE else GONE
         }
     }

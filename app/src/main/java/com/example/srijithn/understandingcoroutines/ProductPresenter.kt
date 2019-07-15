@@ -1,12 +1,11 @@
 package com.example.srijithn.understandingcoroutines
 
 import androidx.lifecycle.MutableLiveData
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 
-class ProductPresenter {
-
-    private val repository: ProductRepository by lazy {
-        ProductRepository()
-    }
+class ProductPresenter(private val repository: ProductRepository) {
 
     val loadingState = MutableLiveData<Boolean>().default(false)
 
@@ -14,28 +13,31 @@ class ProductPresenter {
 
     val error = MutableLiveData<String>()
 
+    private val disposable = CompositeDisposable()
+
     fun onFetchClick() {
         loadingState.value = true
 
-        repository.fetchProducts { networkResult ->
-            when {
-                networkResult.isSuccess -> {
-                    repository.storeProducts(networkResult.getOrDefault(listOf())) { dbResult ->
-                        loadingState.postValue(false)
-                        when {
-                            dbResult.isSuccess -> products.postValue(networkResult.getOrDefault(listOf()))
-                            dbResult.isFailure -> error.postValue(
-                                dbResult.exceptionOrNull()?.message ?: "Unknown error"
-                            )
-                        }
-                    }
+        disposable.add(
+            repository.fetchProducts()
+                .map { productsResponse ->
+                    repository.storeProducts(productsResponse).subscribe()
+                    productsResponse
                 }
-                networkResult.isFailure -> {
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ productsResponse ->
                     loadingState.postValue(false)
-                    error.postValue(networkResult.exceptionOrNull()?.message ?: "Unknown error")
-                }
-            }
-        }
+                    products.postValue(productsResponse)
+                }, { throwable ->
+                    loadingState.postValue(false)
+                    error.postValue(throwable.message)
+                })
+        )
+    }
+
+    fun onDestroy() {
+        disposable.clear()
     }
 }
 

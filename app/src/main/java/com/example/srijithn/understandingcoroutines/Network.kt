@@ -4,24 +4,22 @@ import kotlin.random.Random
 
 class Network {
 
-    fun fetchProducts(callback: (Result<List<Product>>) -> Unit) {
-        backgroundThread.submit {
-            Thread.sleep(2000)
-
-            fetchFromNetwork(callback)
-        }
+    fun fetchProducts(): List<Product> {
+        Thread.sleep(2000)
+        return fetchFromNetwork()
     }
 
-    private fun fetchFromNetwork(callback: (Result<List<Product>>) -> Unit) {
+    private fun fetchFromNetwork(): List<Product> {
         val count = Random.nextInt(10)
-        if (count == 0) callback(Result.failure(ResultException("Count must be greater than 0")))
+        if (count == 0)
+            throw ResultException("Count must be greater than 0")
         else {
             val products = mutableListOf<Product>()
             for (i in 0..count) {
                 val product = Product(i.toString(), "Product $i", "http://google.com/$i")
                 products += product
             }
-            callback(Result.success(products))
+            return products
         }
     }
 

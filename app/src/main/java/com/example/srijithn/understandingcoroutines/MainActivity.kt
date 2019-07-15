@@ -17,9 +17,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        presenter = ProductPresenter()
+        presenter = ProductPresenter(ProductRepository(Network(), Database()))
 
         init()
+    }
+
+    override fun onDestroy() {
+        presenter.onDestroy()
+        super.onDestroy()
     }
 
     private fun init() {

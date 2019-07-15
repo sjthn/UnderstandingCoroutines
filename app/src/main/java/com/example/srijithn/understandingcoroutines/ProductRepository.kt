@@ -1,21 +1,15 @@
 package com.example.srijithn.understandingcoroutines
 
-class ProductRepository {
+import io.reactivex.Observable
 
-    private val network: Network by lazy {
-        Network()
+class ProductRepository(private val network: Network, private val database: Database) {
+
+    fun fetchProducts(): Observable<List<Product>> {
+        return Observable.fromCallable { network.fetchProducts() }
     }
 
-    private val database: Database by lazy {
-        Database()
-    }
-
-    fun fetchProducts(presenterCallback: (Result<List<Product>>) -> Unit) {
-        network.fetchProducts(presenterCallback)
-    }
-
-    fun storeProducts(products: List<Product>, presenterCallback: (Result<Boolean>) -> Unit) {
-        database.storeProducts(products, presenterCallback)
+    fun storeProducts(products: List<Product>): Observable<Boolean> {
+        return Observable.just(database.storeProducts(products))
     }
 
 }

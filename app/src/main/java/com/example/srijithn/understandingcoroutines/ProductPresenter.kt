@@ -1,12 +1,13 @@
 package com.example.srijithn.understandingcoroutines
 
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
-class ProductPresenter {
-
-    private val repository: ProductRepository by lazy {
-        ProductRepository()
-    }
+class ProductPresenter(
+    private val repository: ProductRepository,
+    private val scope: CoroutineScope
+) {
 
     val loadingState = MutableLiveData<Boolean>().default(false)
 
@@ -17,26 +18,26 @@ class ProductPresenter {
     fun onFetchClick() {
         loadingState.value = true
 
-        repository.fetchProducts { networkResult ->
-            when {
-                networkResult.isSuccess -> {
-                    repository.storeProducts(networkResult.getOrDefault(listOf())) { dbResult ->
-                        loadingState.postValue(false)
-                        when {
-                            dbResult.isSuccess -> products.postValue(networkResult.getOrDefault(listOf()))
-                            dbResult.isFailure -> error.postValue(
-                                dbResult.exceptionOrNull()?.message ?: "Unknown error"
-                            )
-                        }
+        scope.launch {
+            when (val fetchProductsResult = repository.fetchProducts()) {
+                is Success -> {
+                    val storeProductsResult = repository.storeProducts(fetchProductsResult.value)
+                    if (storeProductsResult is Failure) onResultException(storeProductsResult.t.message)
+                    else {
+                        loadingState.value = false
+                        products.value = fetchProductsResult.value
                     }
                 }
-                networkResult.isFailure -> {
-                    loadingState.postValue(false)
-                    error.postValue(networkResult.exceptionOrNull()?.message ?: "Unknown error")
-                }
+                is Failure -> onResultException(fetchProductsResult.t.message)
             }
         }
     }
+
+    private fun onResultException(message: String?) {
+        loadingState.value = false
+        error.value = message ?: "Unknown error"
+    }
+
 }
 
 private fun <T> MutableLiveData<T>.default(defaultValue: T) = apply {

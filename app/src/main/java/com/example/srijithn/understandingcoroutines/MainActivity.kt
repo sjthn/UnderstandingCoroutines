@@ -8,18 +8,26 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var presenter: ProductPresenter
 
+    private val scope = MainScope()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        presenter = ProductPresenter()
+        presenter = ProductPresenter(ProductRepository(Network(), Database()), scope)
 
         init()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        scope.cancel()
     }
 
     private fun init() {

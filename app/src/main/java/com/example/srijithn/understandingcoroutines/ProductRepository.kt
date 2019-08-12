@@ -1,21 +1,13 @@
 package com.example.srijithn.understandingcoroutines
 
-class ProductRepository {
+class ProductRepository(private val network: Network, private val database: Database) {
 
-    private val network: Network by lazy {
-        Network()
+    suspend fun fetchProducts(): Result<List<Product>> {
+        return network.fetchProducts()
     }
 
-    private val database: Database by lazy {
-        Database()
-    }
-
-    fun fetchProducts(presenterCallback: (Result<List<Product>>) -> Unit) {
-        network.fetchProducts(presenterCallback)
-    }
-
-    fun storeProducts(products: List<Product>, presenterCallback: (Result<Boolean>) -> Unit) {
-        database.storeProducts(products, presenterCallback)
+    suspend fun storeProducts(products: List<Product>): Result<Unit> {
+        return database.storeProducts(products)
     }
 
 }

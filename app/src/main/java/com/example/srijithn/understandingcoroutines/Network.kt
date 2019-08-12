@@ -1,27 +1,30 @@
 package com.example.srijithn.understandingcoroutines
 
+import kotlinx.coroutines.delay
 import kotlin.random.Random
 
 class Network {
 
-    fun fetchProducts(callback: (Result<List<Product>>) -> Unit) {
-        backgroundThread.submit {
-            Thread.sleep(2000)
-
-            fetchFromNetwork(callback)
+    suspend fun fetchProducts(): Result<List<Product>> {
+        return try {
+            delay(2000)
+            val products = fetchFromNetwork()
+            Success(products)
+        } catch (e: ResultException) {
+            Failure(e)
         }
     }
 
-    private fun fetchFromNetwork(callback: (Result<List<Product>>) -> Unit) {
+    private fun fetchFromNetwork(): List<Product> {
         val count = Random.nextInt(10)
-        if (count == 0) callback(Result.failure(ResultException("Count must be greater than 0")))
+        if (count == 0) throw ResultException("Count must be greater than 0")
         else {
             val products = mutableListOf<Product>()
             for (i in 0..count) {
                 val product = Product(i.toString(), "Product $i", "http://google.com/$i")
                 products += product
             }
-            callback(Result.success(products))
+            return products
         }
     }
 
